@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags:
+      # Use release tags like 1.0.0
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and attach plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release plugin
+        run: cargo build --release
+
+      - name: Rename artifact
+        id: artifact
+        run: |
+          repository="${GITHUB_REPOSITORY//\//-}"
+          name="${repository}-v${GITHUB_REF_NAME}.wasm"
+          cp target/wasm32-wasip1/release/plugin.wasm "${name}"
+          echo "name=${name}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create release and attach artifact
+        uses: actions/github-script@v8
+        env:
+          ASSET_NAME: ${{ steps.artifact.outputs.name }}
+        with:
+          script: |
+            const fs = require('fs');
+            const assetName = process.env.ASSET_NAME;
+            const { owner, repo } = context.repo;
+
+            let release;
+            try {
+              release = await github.rest.repos.getReleaseByTag({
+                owner,
+                repo,
+                tag: context.ref.replace('refs/tags/', ''),
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+
+              release = await github.rest.repos.createRelease({
+                owner,
+                repo,
+                tag_name: context.ref.replace('refs/tags/', ''),
+                generate_release_notes: true,
+              });
+            }
+
+            const existingAssets = await github.paginate(
+              github.rest.repos.listReleaseAssets,
+              { owner, repo, release_id: release.data.id },
+            );
+            const existingAsset = existingAssets.find((asset) => asset.name === assetName);
+            if (existingAsset) {
+              await github.rest.repos.deleteReleaseAsset({
+                owner,
+                repo,
+                asset_id: existingAsset.id,
+              });
+            }
+
+            await github.rest.repos.uploadReleaseAsset({
+              owner,
+              repo,
+              release_id: release.data.id,
+              name: assetName,
+              data: fs.readFileSync(assetName),
+              headers: {
+                'content-type': 'application/wasm',
+                'content-length': fs.statSync(assetName).size,
+              },
+            });

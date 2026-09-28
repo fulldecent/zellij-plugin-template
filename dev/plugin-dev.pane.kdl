@@ -1,0 +1,16 @@
+// Pane. Start Zellij from ~/Development/<repository-name>.
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    pane focus=true
+    pane {
+        plugin location="file:./target/wasm32-wasip1/debug/plugin.wasm"
+    }
+}
