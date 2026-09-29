@@ -9,13 +9,13 @@
 >
 > - Replace the above heading with your project name.
 > - Update the status badge and all other mentions of this repo (except the references section) to instead point to your own repo.
-
-> [!WARNING]
-> Need a full read through here!
->
-> - Do NOT use any github action other than github-supported / see dtolnay/rust-toolchain@stable
+> - Address other "TIP" items below.
 
 ## What this plugin does
+
+> [!TIP]
+>
+> Include screenshots of your actual product here.
 
 This is an opinionated template for a Zellij plugin that provides:
 
@@ -35,7 +35,7 @@ The included plugin renders:
 ////////////////////////
 ```
 
-It does not handle the keyboard, read configuration, or start workers. The first time it loads, Zellij asks for permission to read application state. That permission supplies the active theme colors.
+It does not ask for permissions to run. It's just slashes.
 
 ## Installation
 
@@ -65,14 +65,6 @@ It does not handle the keyboard, read configuration, or start workers. The first
    ...
    include github note here about tweaking this based on WHICH kind of plugin we have
    ```
-
-   
-
-
-
-
-
-
 
 ```text
 ~/.config/zellij/plugins/
@@ -106,7 +98,7 @@ Point a pane at the installed file. These examples use `fulldecent-zellij-plugin
 >
 > SELECT ONE OF THESE !
 >
-> 
+>
 
 Status bar:
 
@@ -186,63 +178,52 @@ Change the `plugin location` to the new filename. No extra tool is required. Rem
 
 ## Development
 
-Develop in `~/Development/<repository-name>`.
+Clone the repo:
 
-> [!TIP]
-> Replace `<repository-name>` with the repository name. For this repository, that path is `~/Development/zellij-plugin-template`. Remove this note from your repository.
+```sh
+git clone https://github.com/fulldecent/zellij-plugin-template.git ~/Developer/fulldecent-zellij-plugin-template
+cd ~/Developer/fulldecent-zellij-plugin-template
+```
 
-> [!WARNING]
+Setup Rust without an extra unnecessary `curl | sh` by using your package manager (on macOS: `brew install rustup`). This requires a few extra `PATH` workarounds below.
+
+Set up dependencies:
+
+```sh
+PATH="$(dirname "$(realpath "$(which rustup)")"):$PATH" cargo check
+```
+
+Build:
+
+```sh
+PATH="$(dirname "$(realpath "$(which rustup)")"):$PATH" cargo build # debug
+```
+
+Run tests:
+
+```sh
+PATH="$(dirname "$(realpath "$(which rustup)")"):$PATH" cargo test --target "$(rustc -vV | sed -n 's/^host: //p')"
+```
+
+Run this directly with:
+
+>[!TIP]
+>Keep all just one of these, depending on what kind of plugin you have. Delete those unused files in the layout/ folder.
 >
-> NEED ACTUAL rust command lines STARTING from a virgin macOS + Xcode + homebrew
+>And the `start-or-reload-plugin` example only makes sense if you are using a pane type.
 
-`rust-toolchain.toml` installs Rust, rustfmt, clippy, and the `wasm32-wasip1` target. `.cargo/config.toml` makes `cargo build` compile that target, so the debug artifact is:
-
-```text
-~/Development/<repository-name>/target/wasm32-wasip1/debug/plugin.wasm
+```sh
+zellij --layout layout/plugin-dev.pane.kdl
+zellij --layout layout/plugin-dev.floating-pane.kdl
+zellij --layout layout/plugin-dev.tab-bar.kdl
+zellij --layout layout/plugin-dev.status-bar.kdl
 ```
 
-The release artifact, before the release workflow renames it, is:
+Or in an existing session, access a shell and use:
 
-```text
-~/Development/<repository-name>/target/wasm32-wasip1/release/plugin.wasm
+```sh
+zellij action start-or-reload-plugin file:target/wasm32-wasip1/debug/plugin.wasm
 ```
-
-The Cargo package name is `plugin`. That name is the `<plugin>` portion of the path above. If you rename the package, update the `file:` locations in `dev/` to match.
-
-> [!NOTE]
-> This template ships multiple development layouts.
-> Select the layout appropriate for your plugin type.
-> Delete the others after initial setup.
-> Remove this note from your repository.
-
-| Layout | Command |
-| --- | --- |
-| Status bar | `zellij -l dev/plugin-dev.status-bar.kdl` |
-| Tab bar | `zellij -l dev/plugin-dev.tab-bar.kdl` |
-| Pane | `zellij -l dev/plugin-dev.pane.kdl` |
-| Floating pane | `zellij -l dev/plugin-dev.floating-pane.kdl` |
-
-Zellij joins a relative `file:` location to the directory where the session was started. These layouts use `file:./target/wasm32-wasip1/debug/plugin.wasm`, which is the debug build when that directory is `~/Development/<repository-name>`. `file:../target/...` would point outside that directory, so these layouts do not use it. An absolute path is not required.
-
-Build, test, and launch from `~/Development/<repository-name>`:
-
-```bash
-cargo build
-cargo test --target "$(rustc -vV | sed -n 's/^host: //p')"
-zellij -l dev/plugin-dev.status-bar.kdl
-```
-
-`cargo test` runs on the host target. Since Zellij 0.45, plugin host functions are no-ops there, so the test harness can run. `cargo build` still produces the WebAssembly plugin because `.cargo/config.toml` selects `wasm32-wasip1`.
-
-After a code change, build again and reload the running plugin. Run this inside the session, from a shell whose working directory is `~/Development/<repository-name>`:
-
-```bash
-cargo build
-zellij action start-or-reload-plugin \
-  file:./target/wasm32-wasip1/debug/plugin.wasm
-```
-
-Use the same `file:` string the layout uses. Zellij treats a different path as a different plugin and opens another pane.
 
 ## Releasing
 
@@ -268,11 +249,12 @@ The release attaches that one file. It does not attach checksums or signatures. 
 Do this every month or so and please send a PR here if you see updates available:
 
 1. Identify external Actions in [.github/workflows](./.github/workflows) scripts and look for available new versions. Review and then update to the new version if it is safe. GitHub-supported Actions (i.e. under the actions/ organization) may require only cursory review.
-1. Review the Rust toolchain in `rust-toolchain.toml` and the `zellij-tile` version in `Cargo.toml`. Update them together when a newer stable pair is appropriate, then refresh `Cargo.lock`.
+1. Review the Rust toolchain in `rust-toolchain.toml`. Update it when a newer stable version is appropriate.
 
 ## References
 
 1. We use an MIT license for this template. You should carefully consider which license to apply to your own project.
 1. Zellij offers another installation method that is simpler and insecure. That points your layout configuration to a HTTPS URL. We consider that feature wrong and deprecated. [TODO: create and link upstream issue]
+1. We speak of the official rustup installation recommendation as ugly. [Reported upstream](https://github.com/rust-lang/rust/issues/163468).
 1. This project is built based on [best practices documented in zellij-plugin-template](https://github.com/fulldecent/zellij-plugin-template), release 1.0.0.
 1. This project is built based on [best practices documented in project-template](https://github.com/fulldecent/project-template), release 1.0.0.

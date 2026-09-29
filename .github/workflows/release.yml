@@ -19,7 +19,15 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        run: |
+          toolchain=$(sed -n 's/^channel = "\([^"]*\)"/\1/p' rust-toolchain.toml)
+          components=$(sed -n 's/^components = \[\(.*\)\]/\1/p' rust-toolchain.toml | tr -d '"' | tr ',' ' ')
+          targets=$(sed -n 's/^targets = \[\(.*\)\]/\1/p' rust-toolchain.toml | tr -d '"' | tr ',' ' ')
+
+          rustup toolchain install "$toolchain" \
+            --profile minimal \
+            $(printf '%s\n' "$components" | xargs -n1 printf -- '--component %s ') \
+            $(printf '%s\n' "$targets" | xargs -n1 printf -- '--target %s ')
 
       - name: Build release plugin
         run: cargo build --release
@@ -33,7 +41,7 @@ jobs:
           echo "name=${name}" >> "${GITHUB_OUTPUT}"
 
       - name: Create release and attach artifact
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ASSET_NAME: ${{ steps.artifact.outputs.name }}
         with:

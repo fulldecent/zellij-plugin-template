@@ -22,7 +22,6 @@ register_plugin!(State);
 
 impl ZellijPlugin for State {
     fn load(&mut self, _configuration: BTreeMap<String, String>) {
-        request_permission(&[PermissionType::ReadApplicationState]);
         subscribe(&[EventType::ModeUpdate]);
     }
 
