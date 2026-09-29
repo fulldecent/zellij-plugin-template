@@ -65,7 +65,7 @@ cp fulldecent-zellij-plugin-template-v*.*.*.wasm ~/.config/zellij/plugins/
    [ -f "$DEST" ] || zellij setup --dump-layout default > $DEST
    ```
 
-4. Edit that file and replace the default tab-bar with this plugin:
+3. Edit that file and replace the default tab-bar with this plugin:
 
    Add like "9.9.9.wasm" after the "v" here based on your downloaded version number.
 
@@ -76,7 +76,7 @@ cp fulldecent-zellij-plugin-template-v*.*.*.wasm ~/.config/zellij/plugins/
 
 > [!TIP]
 >
-> Use different instructions in step 4 above if you want to replace something other than the tab-bar, or want to use a keybinding.
+> Use different instructions in step 3 above if you want to replace something other than the tab-bar, or want to use a keybinding.
 
 ## Upgrading
 
