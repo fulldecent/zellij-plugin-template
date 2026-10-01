@@ -23,20 +23,16 @@ This is an opinionated template for a Zellij plugin that provides:
 - Install/upgrade instructions which allow your customers to avoid compiling and always remember which version they installed
 - Development instructions which allow your contributors to setup with zero programming experience
 - [Continuous integration testing](.github/workflows/ci.yml) with GitHub Actions.
+- A render snapshot checked by [tests/snapshot.sh](tests/snapshot.sh), using [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot)
 - A documented and [automated](.github/workflows/release.yml) version release process
 - Modern development best practices: [.gitignore](.gitignore), [enforced formatting](.github/workflows/lint.yml)
 - A minimal implementation to extend, which is suitable for every plugin type (status bar, tab bar, pane, floating pane)
 
-The included plugin renders:
+This plugin renders:
 
-```text
-////////////////////////
-////////////////////////
-////////////////////////
-////////////////////////
-```
+![Plugin pane filled with slash characters](screenshot.svg)
 
-It does not ask for permissions to run. It's just slashes.
+It does not require any permissions to run. It's just slashes.
 
 ## Installation
 
@@ -111,6 +107,25 @@ Run tests:
 PATH="$(dirname "$(realpath "$(which rustup)")"):$PATH" cargo test --target "$(rustc -vV | sed -n 's/^host: //p')"
 ```
 
+`cargo test` runs the Rust tests in `src/main.rs`. [tests/snapshot.sh](tests/snapshot.sh) builds the release wasm, runs [shots/screenshot.yaml](shots/screenshot.yaml), and exits non-zero unless those bytes match [shots/screenshot.ansi.txt](shots/screenshot.ansi.txt).
+
+The host is [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Install that published crate once. `cargo install` compiles it and puts `zellij-plugin-snapshot` on `PATH`. `[dependencies]` and `[dev-dependencies]` link a library into the plugin wasm or into `cargo test`. This host is a command, so those fields leave it uninstalled.
+
+```sh
+PATH="$(dirname "$(realpath "$(which rustup)")"):$PATH" cargo install zellij-plugin-snapshot --version 0.2.2 --locked
+sh tests/snapshot.sh
+```
+
+[screenshot.svg](screenshot.svg) is that same pane, shown above. The test compares the ANSI file. When the picture should change, write both files again:
+
+```sh
+PATH="$(dirname "$(realpath "$(which rustup)")"):$PATH" zellij-plugin-snapshot shots/screenshot.yaml --out /tmp/shots
+cp /tmp/shots/screenshot.ansi.txt shots/screenshot.ansi.txt
+cp /tmp/shots/screenshot.svg screenshot.svg
+```
+
+`tests/snapshot.sh` passes `--target wasm32-wasip1`. [.cargo/config.toml](.cargo/config.toml) selects that target for a plain `cargo build`. The flag keeps the snapshot build on the plugin wasm if that default is removed.
+
 Run this directly with:
 
 >[!TIP]
@@ -143,11 +158,13 @@ Do this every month or so and please send a PR here if you see updates available
 
 1. Identify external Actions in [.github/workflows](./.github/workflows) scripts and look for available new versions. Review and then update to the new version if it is safe. GitHub-supported Actions (i.e. under the actions/ organization) may require only cursory review.
 1. Review the Rust toolchain in `rust-toolchain.toml`. Update it when a newer stable version is appropriate.
+1. Review [zellij-plugin-snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) releases. Update every `cargo install zellij-plugin-snapshot --version` line to that same published version. Regenerate [shots/screenshot.ansi.txt](shots/screenshot.ansi.txt) and [screenshot.svg](screenshot.svg) when the host output changes.
 
 ## References
 
 1. We use an MIT license for this template. You should carefully consider which license to apply to your own project.
 1. Zellij offers another installation method that is simpler and insecure. That points your layout configuration to a HTTPS URL. We consider that feature wrong and deprecated. [TODO: create and link upstream issue]
 1. We speak of the official rustup installation recommendation as ugly. [Reported upstream](https://github.com/rust-lang/rust/issues/163468).
+1. Render snapshots follow [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Installation follows [`cargo install`](https://doc.rust-lang.org/cargo/commands/cargo-install.html). The test compares [shots/screenshot.ansi.txt](shots/screenshot.ansi.txt). [screenshot.svg](screenshot.svg) is the picture in this README.
 1. This project is built based on [best practices documented in zellij-plugin-template](https://github.com/fulldecent/zellij-plugin-template), release 1.0.0.
 1. This project is built based on [best practices documented in project-template](https://github.com/fulldecent/project-template), release 1.0.0.

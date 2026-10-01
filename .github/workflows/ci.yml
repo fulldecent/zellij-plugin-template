@@ -36,5 +36,17 @@ jobs:
         run: |
           cargo test --target "$(rustc -vV | sed -n 's/^host: //p')"
 
+      # zellij-plugin-snapshot is a command. [dependencies] would compile it into
+      # the plugin wasm. https://github.com/fulldecent/zellij-plugin-snapshot
+      # cargo install writes the binary to ~/.cargo/bin. Prepend that directory
+      # so this step finds it when the runner PATH was set before the install.
+      - name: Install zellij-plugin-snapshot
+        run: cargo install zellij-plugin-snapshot --version 0.2.2 --locked
+
+      - name: Snapshot
+        run: |
+          export PATH="${HOME}/.cargo/bin:${PATH}"
+          sh tests/snapshot.sh
+
       - name: Build
         run: cargo build
