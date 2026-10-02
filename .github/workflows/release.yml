@@ -36,7 +36,7 @@ jobs:
         id: artifact
         run: |
           repository="${GITHUB_REPOSITORY//\//-}"
-          name="${repository}-v${GITHUB_REF_NAME}.wasm"
+          name="${repository}-${GITHUB_REF_NAME}.wasm"
           cp target/wasm32-wasip1/release/plugin.wasm "${name}"
           echo "name=${name}" >> "${GITHUB_OUTPUT}"
 

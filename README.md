@@ -3,7 +3,7 @@
 [![Lint](https://github.com/fulldecent/zellij-plugin-template/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/fulldecent/zellij-plugin-template/actions/workflows/lint.yml)
 [![CI](https://github.com/fulldecent/zellij-plugin-template/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fulldecent/zellij-plugin-template/actions/workflows/ci.yml)
 
-> [!TIP]
+> [!WARNING]
 >
 > To use this template with your own project:
 >
@@ -14,9 +14,9 @@
 
 ## What this plugin does
 
-> [!TIP]
+> [!WARNING]
 >
-> Include screenshots of your actual product here.
+> Include selling points and screenshots of your actual product here.
 
 This is an opinionated template for a Zellij plugin that provides:
 
@@ -34,26 +34,40 @@ This plugin renders:
 
 It does not require any permissions to run. It's just slashes.
 
-## Installation
+## Try it out
 
-Install the [latest released version](https://github.com/fulldecent/zellij-plugin-template/releases) by downloading and copying the .wasm file into `~/.config/zellij/plugins/`:
-
-```sh
-# Run this from your download folder to match your downloaded version number.
-mkdir -p ~/.config/zellij/plugins
-cp fulldecent-zellij-plugin-template-v*.*.*.wasm ~/.config/zellij/plugins/
-```
-
-## Usage
-
-1. Try it inside Zellij:
+1. Select the latest wasm release and install to your plugins folder:
 
    ```sh
-   # Add like "9.9.9.wasm" after the "v" here based on your downloaded version number.
-   zellij action start-or-reload-plugin file:~/.config/zellij/plugins/fulldecent-zellij-plugin-template-v
+   ver=$(curl -fsSL https://api.github.com/repos/fulldecent/zellij-plugin-template/releases/latest \
+     | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')
+   name="fulldecent-zellij-plugin-template-${ver}.wasm"
+   mkdir -p ~/.config/zellij/plugins
+   curl -fL -o ~/.config/zellij/plugins/"$name" \
+     "https://github.com/fulldecent/zellij-plugin-template/releases/download/${ver}/${name}"
    ```
 
-2. Create a personal default layout if you don't have one:
+2. Now open Zellij and try the plugin from inside it (without adding it to your layout yet):
+
+   ```sh
+   zellij
+   
+   # Run this next command from INSIDE your Zellij session
+   plugin=$(printf '%s\n' ~/.config/zellij/plugins/fulldecent-zellij-plugin-template-*.wasm | sort -V | tail -n 1)
+   zellij action start-or-reload-plugin "file:${plugin}"
+   ```
+
+## Installation
+
+> [!WARNING]
+>
+> Modify instruction if your plugin is something other than a tab bar replacement.
+
+You will be adding this plugin to your default layout. 
+
+1. Complete the try it out instructions above to download the plugin.
+
+2. First, create a default layout if you don't already have one:
 
    ```sh
    mkdir -p ~/.config/zellij/layouts
@@ -61,33 +75,39 @@ cp fulldecent-zellij-plugin-template-v*.*.*.wasm ~/.config/zellij/plugins/
    [ -f "$DEST" ] || zellij setup --dump-layout default > $DEST
    ```
 
-3. Edit that file and replace the default tab-bar with this plugin:
-
-   Add like "9.9.9.wasm" after the "v" here based on your downloaded version number.
+3. Then, replace `tab-bar` with this plugin:
 
    ```diff
    - plugin location="tab-bar"
-   + plugin location="file:~/.config/zellij/plugins/fulldecent-zellij-plugin-template-v"
+   + plugin location="file:~/.config/zellij/plugins/fulldecent-zellij-plugin-template-...
    ```
 
-> [!TIP]
->
-> Use different instructions in step 3 above if you want to replace something other than the tab-bar, or want to use a keybinding.
+   Or, non-interactively:
+
+   ```sh
+   plugin=$(printf '%s\n' ~/.config/zellij/plugins/fulldecent-zellij-plugin-template-*.wasm | sort -V | tail -n 1)
+   DEST=~/.config/zellij/layouts/default.kdl
+   # macOS sed writes the file in place. Replaces tab-bar or an older copy of this plugin.
+   sed -i '' \
+     -e "s|plugin location=\"tab-bar\"|plugin location=\"file:${plugin}\"|" \
+     -e "s|plugin location=\"file:.*fulldecent-zellij-plugin-template-.*\\.wasm\"|plugin location=\"file:${plugin}\"|" \
+     "$DEST"
+   ```
 
 ## Upgrading
 
-Repeat the same installation + usage above. Your new version will supercede the old version.
+Repeat the same try it out + installation instructions above.
 
 ## Development
 
-Clone the repo:
+1. Clone the repo:
 
-```sh
-git clone https://github.com/fulldecent/zellij-plugin-template.git ~/Developer/fulldecent-zellij-plugin-template
-cd ~/Developer/fulldecent-zellij-plugin-template
-```
+   ```sh
+   git clone https://github.com/fulldecent/zellij-plugin-template.git ~/Developer/fulldecent-zellij-plugin-template
+   cd ~/Developer/fulldecent-zellij-plugin-template
+   ```
 
-Setup Rust without an extra unnecessary `curl | sh` by using your package manager (on macOS: `brew install rustup`). This requires a few extra `PATH` workarounds below.
+2. Setup Rust without an extra unnecessary `curl | sh` by using your package manager (on macOS: `brew install rustup`). This requires a few extra `PATH` workarounds below.
 
 Set up dependencies:
 
