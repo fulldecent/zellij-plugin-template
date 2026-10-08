@@ -11,12 +11,19 @@ set -eu
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$root"
 
-# Homebrew rust ignores rust-toolchain.toml. Use the rustup-selected cargo.
-if command -v rustup >/dev/null 2>&1; then
-  cargo=$("$(command -v rustup)" which cargo)
-else
-  cargo=cargo
-fi
+# Homebrew rust ignores rust-toolchain.toml. `rustup which cargo` is the
+# inner toolchain binary (often the default stable) and does not apply this
+# directory's rust-toolchain.toml or auto-install wasm32-wasip1.
+run_cargo() {
+  if command -v rustup >/dev/null 2>&1; then
+    rustup=$(command -v rustup)
+    toolchain=$("$rustup" show active-toolchain)
+    toolchain=${toolchain%% *}
+    "$rustup" run "$toolchain" cargo "$@"
+  else
+    cargo "$@"
+  fi
+}
 
 # `cargo install` places zellij-plugin-snapshot in ~/.cargo/bin.
 PATH="${HOME}/.cargo/bin:${PATH}"
@@ -32,7 +39,10 @@ fi
 # Name the target here so this script still builds the plugin wasm if that
 # default is removed. `cargo test` cannot do this job: it locks the target
 # directory, and it runs the host harness rather than the plugin wasm.
-"$cargo" build --release --locked --target wasm32-wasip1
+if command -v rustup >/dev/null 2>&1; then
+  "$(command -v rustup)" target add wasm32-wasip1
+fi
+run_cargo build --release --locked --target wasm32-wasip1
 
 out=$(mktemp -d)
 trap 'rm -rf "$out"' EXIT
