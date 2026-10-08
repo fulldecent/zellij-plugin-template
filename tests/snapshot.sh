@@ -4,26 +4,27 @@
 # zellij-plugin-snapshot is a command. [dependencies] and [dev-dependencies]
 # link a library into the wasm or into `cargo test`, so they leave this binary
 # uninstalled. Install the pinned release first:
-#   cargo install zellij-plugin-snapshot --version 0.2.2 --locked
+#   "$(rustup which cargo)" install zellij-plugin-snapshot --version 0.2.2 --locked
 # https://github.com/fulldecent/zellij-plugin-snapshot
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$root"
 
-# `brew install rustup` leaves /opt/homebrew/bin/cargo as Homebrew's Rust, which
-# ignores rust-toolchain.toml, so wasm32-wasip1 from that file is missing and
-# the build fails. Prepend the rustup directory, as the README does.
-# `cargo install` places zellij-plugin-snapshot in ~/.cargo/bin.
+# Homebrew rust ignores rust-toolchain.toml. Use the rustup-selected cargo.
 if command -v rustup >/dev/null 2>&1; then
-  rustup_bin=$(dirname "$(realpath "$(command -v rustup)")")
-  PATH="${rustup_bin}:${HOME}/.cargo/bin:${PATH}"
-  export PATH
+  cargo=$("$(command -v rustup)" which cargo)
+else
+  cargo=cargo
 fi
+
+# `cargo install` places zellij-plugin-snapshot in ~/.cargo/bin.
+PATH="${HOME}/.cargo/bin:${PATH}"
+export PATH
 
 if ! command -v zellij-plugin-snapshot >/dev/null 2>&1; then
   echo "zellij-plugin-snapshot 0.2.2 is not on PATH." >&2
-  echo "cargo install zellij-plugin-snapshot --version 0.2.2 --locked" >&2
+  echo '"$(rustup which cargo)" install zellij-plugin-snapshot --version 0.2.2 --locked' >&2
   exit 1
 fi
 
@@ -31,7 +32,7 @@ fi
 # Name the target here so this script still builds the plugin wasm if that
 # default is removed. `cargo test` cannot do this job: it locks the target
 # directory, and it runs the host harness rather than the plugin wasm.
-cargo build --release --target wasm32-wasip1
+"$cargo" build --release --locked --target wasm32-wasip1
 
 out=$(mktemp -d)
 trap 'rm -rf "$out"' EXIT

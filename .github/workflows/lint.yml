@@ -7,16 +7,28 @@ on:
     # Runs on all pull requests targeting any branch
     branches: ["**"]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
-    name: Prettier & Markdownlint
+    name: Rust, Prettier & Markdownlint
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup Node.js (Tool Runtime)
+      - name: Set up Rust
+        run: rustup show
+
+      - name: Check Rust formatting
+        run: cargo fmt --all -- --check
+
+      - name: Check Rust (Clippy)
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Setup Node.js (tool runtime)
         uses: actions/setup-node@v7
         with:
           node-version: "lts/*" # Floating version is appropriate specifically for Prettier and markdownlint
@@ -27,4 +39,4 @@ jobs:
 
       - name: Check Markdown (markdownlint)
         # Command fails if any markdown files do not meet the linting rules.
-        run: npx markdownlint-cli@latest "**/*.md" --ignore "node_modules"
+        run: npx markdownlint-cli@latest "**/*.md"

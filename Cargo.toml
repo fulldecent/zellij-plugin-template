@@ -4,7 +4,7 @@ version = "0.2.0"
 edition = "2021"
 license = "MIT"
 authors = ["William Entriken"]
-description = "A Zellij plugin that fills its area with slash characters."
+description = "Zellij Slashes Pane: a Zellij plugin that fills its area with slash characters."
 repository = "https://github.com/fulldecent/zellij-plugin-template"
 
 [dependencies]
