@@ -4,6 +4,13 @@
 
 - Install downloads the latest wasm and `.sigstore.jsonl` sidecar from GitHub `/releases/latest/download` using the stable reverse-DNS names.
 
+## [0.4.0](https://github.com/fulldecent/zellij-plugin-template/compare/v0.3.0...v0.4.0) (2026-10-08)
+
+
+### Features
+
+* simpler install ([3b9a272](https://github.com/fulldecent/zellij-plugin-template/commit/3b9a27245bc0bebbbffe8d55dda914256fce22ef))
+
 ## [0.3.0](https://github.com/fulldecent/zellij-plugin-template/compare/0.2.0...v0.3.0) (2026-10-08)
 
 
