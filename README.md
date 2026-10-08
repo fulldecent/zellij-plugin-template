@@ -51,19 +51,15 @@ This is a [Zellij](https://zellij.dev/) plugin and supports the latest active re
 
    ```sh
    name="com.github.fulldecent.zellij-plugin-template.wasm"
+   base="https://github.com/fulldecent/zellij-plugin-template/releases/latest/download"
    mkdir -p ~/.config/zellij/plugins
-   rel=$(curl -fsSL https://api.github.com/repos/fulldecent/zellij-plugin-template/releases/latest)
-   wasm=$(printf '%s' "$rel" | python3 -c 'import json,sys; print(next(a["browser_download_url"] for a in json.load(sys.stdin)["assets"] if a["name"].endswith(".wasm")))')
-   curl -fL -o ~/.config/zellij/plugins/"$name" "$wasm"
-   sidecar=$(printf '%s' "$rel" | python3 -c 'import json,sys; print(next((a["browser_download_url"] for a in json.load(sys.stdin)["assets"] if a["name"].endswith(".sigstore.jsonl")), ""), end="")')
-   if [ -n "$sidecar" ]; then
-     curl -fL -o ~/.config/zellij/plugins/"${name}.sigstore.jsonl" "$sidecar"
-   fi
+   curl -fL -o ~/.config/zellij/plugins/"$name" "$base/$name"
+   curl -fL -o ~/.config/zellij/plugins/"${name}.sigstore.jsonl" "$base/${name}.sigstore.jsonl"
    ```
 
-   GitHub `/releases/latest/download/<filename>` only works when that exact filename is on the latest release. Today's latest is `0.2.0`, whose wasm is still `fulldecent-zellij-plugin-template-v0.2.0.wasm`. The commands above take whichever `.wasm` (and sidecar, if present) that release lists, and save them under the stable reverse-DNS name.
+   The release asset names match this local file. `curl -f` fails if the wasm or the sidecar is missing.
 
-   Check the file against the sidecar when the release includes one:
+   Check the file against the sidecar:
 
    ```sh
    gh attestation verify ~/.config/zellij/plugins/"$name" \
