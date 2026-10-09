@@ -90,11 +90,11 @@ You will now be adding this plugin to your default layout.
    [ -f "$DEST" ] || zellij setup --dump-layout default > $DEST
    ```
 
-2. Then, replace `tab-bar` with this plugin:
+2. Then, replace `tab-bar` with this plugin. Zellij does not expand `~` inside a `file:` location. Use an absolute path (`$HOME`).
 
    ```diff
    - plugin location="tab-bar"
-   + plugin location="file:~/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
+   + plugin location="file:/ABSOLUTE/HOME/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
    ```
 
    Or, non-interactively:
@@ -106,11 +106,14 @@ You will now be adding this plugin to your default layout.
    sed -i '' \
      -e "s|plugin location=\"tab-bar\"|plugin location=\"file:${plugin}\"|" \
      -e "s|plugin location=\"file:.*com.github.fulldecent.zellij-plugin-template\\.wasm\"|plugin location=\"file:${plugin}\"|" \
-     -e "s|plugin location=\"file:.*fulldecent-zellij-plugin-template-.*\\.wasm\"|plugin location=\"file:${plugin}\"|" \
      "$DEST"
    ```
 
 Repeat the same try it out + installation steps to upgrade. The wasm file name is stable, so upgrading overwrites that file and your layout path stays the same. The sidecar next to it records which release version you downloaded.
+
+Plugin paths are read when a session starts. Quit Zellij, or open a new terminal and run `zellij`. A new tab is not a new session.
+
+If you replace a stock plugin through `plugins { }` in `config.kdl`, keep the stock alias name (`tab-bar` or `status-bar`). A new name is never loaded by the default layout. Do not put that line in `load_plugins { }`.
 
 > [!NOTE]
 > If your project requires some installation process to use it, explain that here. If not, delete this section.
@@ -253,7 +256,7 @@ All project updates that we release must conform to our test suite. We have set 
 "$(rustup which cargo)" build --release --locked
 ```
 
-`cargo test` runs the Rust tests in `src/main.rs`. [tests/snapshot.sh](tests/snapshot.sh) builds the release wasm, runs [shots/screenshot.yaml](shots/screenshot.yaml), and exits non-zero unless those bytes match [shots/screenshot.ansi.txt](shots/screenshot.ansi.txt).
+`cargo test` runs the Rust tests in `src/main.rs`. [tests/snapshot.sh](tests/snapshot.sh) builds the release wasm, runs every [shots/*.yaml](shots/) file, and exits non-zero unless each `{name}.ansi.txt` matches. Add another yaml in `shots/` when a plugin needs a second size or state.
 
 The host is [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Install that published crate once. `cargo install` compiles it and puts `zellij-plugin-snapshot` on `PATH`. `[dependencies]` and `[dev-dependencies]` link a library into the plugin wasm or into `cargo test`. This host is a command, so those fields leave it uninstalled.
 
@@ -324,7 +327,8 @@ We specifically will not point layouts at an HTTPS plugin URL.
 1. This project is built based on [best practices documented in project-template](https://github.com/fulldecent/project-template), release 1.3.0.
 1. Zellij offers another installation method that is simpler and insecure. That points your layout configuration to a HTTPS URL. We consider that feature wrong and deprecated. [TODO: create and link upstream issue]
 1. We speak of the official rustup installation recommendation as ugly. [Reported upstream](https://github.com/rust-lang/rust/issues/163468).
-1. Render snapshots follow [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Installation follows [`cargo install`](https://doc.rust-lang.org/cargo/commands/cargo-install.html). The test compares [shots/screenshot.ansi.txt](shots/screenshot.ansi.txt). [screenshot.svg](screenshot.svg) is the picture in this README.
+1. Render snapshots follow [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Installation follows [`cargo install`](https://doc.rust-lang.org/cargo/commands/cargo-install.html). [tests/snapshot.sh](tests/snapshot.sh) compares every `shots/*.yaml` against `shots/{name}.ansi.txt`. [screenshot.svg](screenshot.svg) is the picture in this README.
+1. Zellij does not expand `~` inside a quoted `file:` plugin location. Install instructions use `$HOME`. [Confirmed while shipping zellij-status-bar-ng](https://github.com/fulldecent/zellij-status-bar-ng).
 1. The Rust ignore rules in [.gitignore](.gitignore) come from [GitHub's Rust gitignore](https://github.com/github/gitignore/blob/main/Rust.gitignore).
 1. This project is released under the [MIT license](./LICENSE.md).
 

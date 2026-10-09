@@ -34,3 +34,5 @@ rustc-ice-*.txt
 
 # Release artifacts
 /dist/
+
+**/*.wasm

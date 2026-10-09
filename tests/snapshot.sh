@@ -4,7 +4,7 @@
 # zellij-plugin-snapshot is a command. [dependencies] and [dev-dependencies]
 # link a library into the wasm or into `cargo test`, so they leave this binary
 # uninstalled. Install the pinned release first:
-#   "$(rustup which cargo)" install zellij-plugin-snapshot --version 0.2.2 --locked
+#   rustup run "$(rustup show active-toolchain | awk '{print $1}')" cargo install zellij-plugin-snapshot --version 0.2.2 --locked
 # https://github.com/fulldecent/zellij-plugin-snapshot
 set -eu
 
@@ -31,7 +31,7 @@ export PATH
 
 if ! command -v zellij-plugin-snapshot >/dev/null 2>&1; then
   echo "zellij-plugin-snapshot 0.2.2 is not on PATH." >&2
-  echo '"$(rustup which cargo)" install zellij-plugin-snapshot --version 0.2.2 --locked' >&2
+  echo 'rustup run "$(rustup show active-toolchain | awk "{print \$1}")" cargo install zellij-plugin-snapshot --version 0.2.2 --locked' >&2
   exit 1
 fi
 
@@ -47,15 +47,21 @@ run_cargo build --release --locked --target wasm32-wasip1
 out=$(mktemp -d)
 trap 'rm -rf "$out"' EXIT
 
-# shots/screenshot.yaml sets `name: screenshot`, so the host writes
-# screenshot.ansi.txt and screenshot.svg.
-zellij-plugin-snapshot shots/screenshot.yaml --out "$out"
-
-if ! diff -u shots/screenshot.ansi.txt "$out/screenshot.ansi.txt"; then
-  echo "Render bytes differ from shots/screenshot.ansi.txt." >&2
+# Each shots/*.yaml `name` is the stem of `{name}.ansi.txt` and `{name}.svg`.
+failed=0
+for yaml in shots/*.yaml; do
+  [ -f "$yaml" ] || continue
+  stem=$(basename "$yaml" .yaml)
+  zellij-plugin-snapshot "$yaml" --out "$out"
+  if ! diff -u "shots/${stem}.ansi.txt" "$out/${stem}.ansi.txt"; then
+    echo "Render bytes differ from shots/${stem}.ansi.txt." >&2
+    failed=1
+  fi
+done
+if [ "$failed" -ne 0 ]; then
   echo "When that change is intended, refresh the committed files:" >&2
-  echo "  zellij-plugin-snapshot shots/screenshot.yaml --out /tmp/shots" >&2
-  echo "  cp /tmp/shots/screenshot.ansi.txt shots/screenshot.ansi.txt" >&2
+  echo "  zellij-plugin-snapshot shots/<name>.yaml --out /tmp/shots" >&2
+  echo "  cp /tmp/shots/<name>.ansi.txt shots/<name>.ansi.txt" >&2
   echo "  cp /tmp/shots/screenshot.svg screenshot.svg" >&2
   exit 1
 fi
