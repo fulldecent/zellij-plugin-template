@@ -44,19 +44,29 @@ if command -v rustup >/dev/null 2>&1; then
 fi
 run_cargo build --release --locked --target wasm32-wasip1
 
-out=$(mktemp -d)
-trap 'rm -rf "$out"' EXIT
-
-# Each shots/*.yaml `name` is the stem of `{name}.ansi.txt` and `{name}.svg`.
+# zellij-plugin-snapshot writes `{name}.ansi.txt` from the YAML `name` field
+# (file stem if `name` is omitted). Compare those generated files, not the
+# yaml filename.
 failed=0
 matched=0
 for yaml in shots/*.yaml; do
   [ -f "$yaml" ] || continue
   matched=$((matched + 1))
-  stem=$(basename "$yaml" .yaml)
+  out=$(mktemp -d)
   zellij-plugin-snapshot "$yaml" --out "$out"
-  if ! diff -u "shots/${stem}.ansi.txt" "$out/${stem}.ansi.txt"; then
-    echo "Render bytes differ from shots/${stem}.ansi.txt." >&2
+  produced=0
+  for ansi in "$out"/*.ansi.txt; do
+    [ -f "$ansi" ] || continue
+    produced=$((produced + 1))
+    base=$(basename "$ansi")
+    if ! diff -u "shots/$base" "$ansi"; then
+      echo "Render bytes differ from shots/$base." >&2
+      failed=1
+    fi
+  done
+  rm -rf "$out"
+  if [ "$produced" -eq 0 ]; then
+    echo "zellij-plugin-snapshot wrote no .ansi.txt for $yaml" >&2
     failed=1
   fi
 done
@@ -66,7 +76,7 @@ if [ "$matched" -eq 0 ]; then
 fi
 if [ "$failed" -ne 0 ]; then
   echo "When that change is intended, refresh the committed files:" >&2
-  echo "  zellij-plugin-snapshot shots/<name>.yaml --out /tmp/shots" >&2
+  echo "  zellij-plugin-snapshot shots/<file>.yaml --out /tmp/shots" >&2
   echo "  cp /tmp/shots/<name>.ansi.txt shots/<name>.ansi.txt" >&2
   echo "  cp /tmp/shots/<name>.svg shots/<name>.svg" >&2
   echo "  cp /tmp/shots/screenshot.svg screenshot.svg" >&2
