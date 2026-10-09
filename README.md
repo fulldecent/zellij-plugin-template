@@ -106,6 +106,7 @@ You will now be adding this plugin to your default layout.
    sed -i '' \
      -e "s|plugin location=\"tab-bar\"|plugin location=\"file:${plugin}\"|" \
      -e "s|plugin location=\"file:.*com.github.fulldecent.zellij-plugin-template\\.wasm\"|plugin location=\"file:${plugin}\"|" \
+     -e "s|plugin location=\"file:.*fulldecent-zellij-plugin-template-.*\\.wasm\"|plugin location=\"file:${plugin}\"|" \
      "$DEST"
    ```
 

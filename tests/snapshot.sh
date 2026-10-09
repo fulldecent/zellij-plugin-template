@@ -47,12 +47,15 @@ run_cargo build --release --locked --target wasm32-wasip1
 # zellij-plugin-snapshot writes `{name}.ansi.txt` from the YAML `name` field
 # (file stem if `name` is omitted). Compare those generated files, not the
 # yaml filename.
+out=$(mktemp -d)
+trap 'rm -rf "$out"' EXIT
+
 failed=0
 matched=0
 for yaml in shots/*.yaml; do
   [ -f "$yaml" ] || continue
   matched=$((matched + 1))
-  out=$(mktemp -d)
+  find "$out" -mindepth 1 -delete
   zellij-plugin-snapshot "$yaml" --out "$out"
   produced=0
   for ansi in "$out"/*.ansi.txt; do
@@ -64,7 +67,6 @@ for yaml in shots/*.yaml; do
       failed=1
     fi
   done
-  rm -rf "$out"
   if [ "$produced" -eq 0 ]; then
     echo "zellij-plugin-snapshot wrote no .ansi.txt for $yaml" >&2
     failed=1
@@ -78,7 +80,6 @@ if [ "$failed" -ne 0 ]; then
   echo "When that change is intended, refresh the committed files:" >&2
   echo "  zellij-plugin-snapshot shots/<file>.yaml --out /tmp/shots" >&2
   echo "  cp /tmp/shots/<name>.ansi.txt shots/<name>.ansi.txt" >&2
-  echo "  cp /tmp/shots/<name>.svg shots/<name>.svg" >&2
   echo "  cp /tmp/shots/screenshot.svg screenshot.svg" >&2
   exit 1
 fi
