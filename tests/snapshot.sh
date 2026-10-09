@@ -68,6 +68,7 @@ if [ "$failed" -ne 0 ]; then
   echo "When that change is intended, refresh the committed files:" >&2
   echo "  zellij-plugin-snapshot shots/<name>.yaml --out /tmp/shots" >&2
   echo "  cp /tmp/shots/<name>.ansi.txt shots/<name>.ansi.txt" >&2
+  echo "  cp /tmp/shots/<name>.svg shots/<name>.svg" >&2
   echo "  cp /tmp/shots/screenshot.svg screenshot.svg" >&2
   exit 1
 fi
