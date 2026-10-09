@@ -49,8 +49,10 @@ trap 'rm -rf "$out"' EXIT
 
 # Each shots/*.yaml `name` is the stem of `{name}.ansi.txt` and `{name}.svg`.
 failed=0
+matched=0
 for yaml in shots/*.yaml; do
   [ -f "$yaml" ] || continue
+  matched=$((matched + 1))
   stem=$(basename "$yaml" .yaml)
   zellij-plugin-snapshot "$yaml" --out "$out"
   if ! diff -u "shots/${stem}.ansi.txt" "$out/${stem}.ansi.txt"; then
@@ -58,6 +60,10 @@ for yaml in shots/*.yaml; do
     failed=1
   fi
 done
+if [ "$matched" -eq 0 ]; then
+  echo "no shots/*.yaml files" >&2
+  exit 1
+fi
 if [ "$failed" -ne 0 ]; then
   echo "When that change is intended, refresh the committed files:" >&2
   echo "  zellij-plugin-snapshot shots/<name>.yaml --out /tmp/shots" >&2

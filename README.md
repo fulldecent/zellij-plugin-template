@@ -261,7 +261,7 @@ All project updates that we release must conform to our test suite. We have set 
 The host is [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Install that published crate once. `cargo install` compiles it and puts `zellij-plugin-snapshot` on `PATH`. `[dependencies]` and `[dev-dependencies]` link a library into the plugin wasm or into `cargo test`. This host is a command, so those fields leave it uninstalled.
 
 ```sh
-"$(rustup which cargo)" install zellij-plugin-snapshot --version 0.2.2 --locked
+rustup run "$(rustup show active-toolchain | awk '{print $1}')" cargo install zellij-plugin-snapshot --version 0.2.2 --locked
 sh tests/snapshot.sh
 ```
 
