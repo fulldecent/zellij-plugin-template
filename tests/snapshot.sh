@@ -11,20 +11,6 @@ set -eu
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$root"
 
-# Homebrew rust ignores rust-toolchain.toml. `rustup which cargo` is the
-# inner toolchain binary (often the default stable) and does not apply this
-# directory's rust-toolchain.toml or auto-install wasm32-wasip1.
-run_cargo() {
-  if command -v rustup >/dev/null 2>&1; then
-    rustup=$(command -v rustup)
-    toolchain=$("$rustup" show active-toolchain)
-    toolchain=${toolchain%% *}
-    "$rustup" run "$toolchain" cargo "$@"
-  else
-    cargo "$@"
-  fi
-}
-
 # `cargo install` places zellij-plugin-snapshot in ~/.cargo/bin.
 PATH="${HOME}/.cargo/bin:${PATH}"
 export PATH
@@ -39,23 +25,45 @@ fi
 # Name the target here so this script still builds the plugin wasm if that
 # default is removed. `cargo test` cannot do this job: it locks the target
 # directory, and it runs the host harness rather than the plugin wasm.
-if command -v rustup >/dev/null 2>&1; then
-  "$(command -v rustup)" target add wasm32-wasip1
-fi
-run_cargo build --release --locked --target wasm32-wasip1
+rustup target add wasm32-wasip1
+"$(rustup which cargo)" build --release --locked --target wasm32-wasip1
 
+# zellij-plugin-snapshot writes `{name}.ansi.txt` from the YAML `name` field
+# (file stem if `name` is omitted). Compare those generated files, not the
+# yaml filename.
 out=$(mktemp -d)
 trap 'rm -rf "$out"' EXIT
 
-# shots/screenshot.yaml sets `name: screenshot`, so the host writes
-# screenshot.ansi.txt and screenshot.svg.
-zellij-plugin-snapshot shots/screenshot.yaml --out "$out"
-
-if ! diff -u shots/screenshot.ansi.txt "$out/screenshot.ansi.txt"; then
-  echo "Render bytes differ from shots/screenshot.ansi.txt." >&2
+failed=0
+matched=0
+for yaml in shots/*.yaml; do
+  [ -f "$yaml" ] || continue
+  matched=$((matched + 1))
+  find "$out" -mindepth 1 -delete
+  zellij-plugin-snapshot "$yaml" --out "$out"
+  produced=0
+  for ansi in "$out"/*.ansi.txt; do
+    [ -f "$ansi" ] || continue
+    produced=$((produced + 1))
+    base=$(basename "$ansi")
+    if ! diff -u "shots/$base" "$ansi"; then
+      echo "Render bytes differ from shots/$base." >&2
+      failed=1
+    fi
+  done
+  if [ "$produced" -eq 0 ]; then
+    echo "zellij-plugin-snapshot wrote no .ansi.txt for $yaml" >&2
+    failed=1
+  fi
+done
+if [ "$matched" -eq 0 ]; then
+  echo "no shots/*.yaml files" >&2
+  exit 1
+fi
+if [ "$failed" -ne 0 ]; then
   echo "When that change is intended, refresh the committed files:" >&2
-  echo "  zellij-plugin-snapshot shots/screenshot.yaml --out /tmp/shots" >&2
-  echo "  cp /tmp/shots/screenshot.ansi.txt shots/screenshot.ansi.txt" >&2
+  echo "  zellij-plugin-snapshot shots/<file>.yaml --out /tmp/shots" >&2
+  echo "  cp /tmp/shots/<name>.ansi.txt shots/<name>.ansi.txt" >&2
   echo "  cp /tmp/shots/screenshot.svg screenshot.svg" >&2
   exit 1
 fi

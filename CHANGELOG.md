@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Install downloads the latest wasm and `.sigstore.jsonl` sidecar from GitHub `/releases/latest/download` using the stable reverse-DNS names.
+- Install paths use `$HOME`. Zellij does not expand `~` in `file:` locations.
+- Snapshot tests run every `shots/*.yaml`. Gitignore covers stray `*.wasm`.
 
 ## [0.4.0](https://github.com/fulldecent/zellij-plugin-template/compare/v0.3.0...v0.4.0) (2026-10-08)
 
