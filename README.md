@@ -57,9 +57,7 @@ This is a [Zellij](https://zellij.dev/) plugin and supports the latest active re
    curl -fL -o ~/.config/zellij/plugins/"${name}.sigstore.jsonl" "$base/${name}.sigstore.jsonl"
    ```
 
-   The release asset names match this local file. `curl -f` fails if the wasm or the sidecar is missing.
-
-   Verify with `gh` (exit 0):
+   If you have the `gh` command, verify the file build attestation:
 
    ```sh
    gh attestation verify ~/.config/zellij/plugins/"$name" \
@@ -290,9 +288,9 @@ npx markdownlint-cli@latest "**/*.md" --fix
 
 Use `fix:`, `feat:` or `BREAKING CHANGE:` in your commit messages. This will trigger our bot to make a new "release draft" pull request. Merging that pull request triggers a new tag and GitHub Release.
 
-The [release workflow](.github/workflows/release.yml) uses Release Please's `simple` release type. Set the version in [Cargo.toml](Cargo.toml) and [Cargo.lock](Cargo.lock) to the proposed release version before merging the release pull request.
+The [release workflow](.github/workflows/release.yml) uses Release Please's `simple` release type. The GitHub Release tag is the version. The sidecar records that version.
 
-[Build and test](.github/workflows/build-test.yml) builds and tests the release wasm, then attests and uploads it. The release includes `com.github.fulldecent.zellij-plugin-template.wasm` and `com.github.fulldecent.zellij-plugin-template.wasm.sigstore.jsonl`, containing build provenance and version attestations. The wasm file name is stable across versions; the sidecar records the version.
+[Build and test](.github/workflows/build-test.yml) builds and tests the release wasm, then attests and uploads it. The release includes `com.github.fulldecent.zellij-plugin-template.wasm` and `com.github.fulldecent.zellij-plugin-template.wasm.sigstore.jsonl`. The wasm file name is stable across versions.
 
 > [!NOTE]
 > In your GitHub repository settings, under Actions, General, Workflow permissions, select read and write permissions and check "Allow GitHub Actions to create and approve pull requests". Under General, Releases, enable release immutability. Attestations are available for public repositories; private repositories require GitHub Enterprise Cloud. Release Please needs write access to open the release draft pull request.
