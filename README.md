@@ -67,18 +67,15 @@ This is a [Zellij](https://zellij.dev/) plugin and supports the latest active re
      --bundle ~/.config/zellij/plugins/"${name}.sigstore.jsonl"
    ```
 
-2. Now open Zellij and try the plugin from inside it (without adding it to your layout yet):
+2. From inside a Zellij session:
 
    ```sh
-   zellij
-   
-   # Run this next command from INSIDE your Zellij session
    zellij action start-or-reload-plugin "file:~/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
    ```
 
 ## Installation
 
-Complete the [try it out instructions](#try-it-out) above to download the plugin.
+Use [Try it out](#try-it-out) to download the plugin.
 
 You will now be adding this plugin to your default layout.
 
@@ -97,9 +94,9 @@ You will now be adding this plugin to your default layout.
    + plugin location="file:~/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
    ```
 
-Repeat the same try it out + installation steps to upgrade. The wasm file name is stable, so upgrading overwrites that file and your layout path stays the same. The sidecar next to it records which release version you downloaded.
+Quit and reopen Zellij to load your new plugin!
 
-Plugin paths are read when a session starts. Quit Zellij, or open a new terminal and run `zellij`. A new tab is not a new session.
+To upgrade: repeat [Try it out](#try-it-out) > step 1, then start a new session.
 
 If you replace a stock plugin through `plugins { }` in `config.kdl`, keep the stock alias name (`tab-bar` or `status-bar`). A new name is never loaded by the default layout. Do not put that line in `load_plugins { }`.
 
@@ -128,6 +125,14 @@ The pane fills its area with slash characters in your theme colors. It does not 
 > Explain how to use your project. Or link to the canonical usage instructions.
 >
 > Other common names for this section include: "how to...".
+
+### Uninstall
+
+Edit your `~/.config/zellij/layouts/default.kdl` again and replace the plugin line with:
+
+```kdl
+plugin location="tab-bar"
+```
 
 ## Development
 
