@@ -34,7 +34,7 @@ Zellij Slashes Pane offers:
 
 * A wasm you can drop into `~/.config/zellij/plugins` without compiling
 * A stable reverse-DNS file name so upgrades overwrite the same path
-* A signed sidecar next to that file so you can check which release you installed
+* A signed sidecar next to that file (`urn:version` is the release)
 
 ![Plugin pane filled with slash characters](screenshot.svg)
 
@@ -59,7 +59,7 @@ This is a [Zellij](https://zellij.dev/) plugin and supports the latest active re
 
    The release asset names match this local file. `curl -f` fails if the wasm or the sidecar is missing.
 
-   Check the file against the sidecar:
+   Verify with `gh` (exit 0):
 
    ```sh
    gh attestation verify ~/.config/zellij/plugins/"$name" \
