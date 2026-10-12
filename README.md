@@ -84,7 +84,7 @@ You will now be adding this plugin to your default layout.
    ```sh
    mkdir -p ~/.config/zellij/layouts
    DEST=~/.config/zellij/layouts/default.kdl
-   [ -f "$DEST" ] || zellij setup --dump-layout default > $DEST
+   [ -f "$DEST" ] || zellij setup --dump-layout default > "$DEST"
    ```
 
 2. Then, replace `tab-bar` with this plugin:
