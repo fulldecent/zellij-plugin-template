@@ -73,7 +73,7 @@ This is a [Zellij](https://zellij.dev/) plugin and supports the latest active re
    zellij
    
    # Run this next command from INSIDE your Zellij session
-   zellij action start-or-reload-plugin "file:${HOME}/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
+   zellij action start-or-reload-plugin "file:~/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
    ```
 
 ## Installation
@@ -90,11 +90,11 @@ You will now be adding this plugin to your default layout.
    [ -f "$DEST" ] || zellij setup --dump-layout default > $DEST
    ```
 
-2. Then, replace `tab-bar` with this plugin. Zellij does not expand `~` inside a `file:` location. Use an absolute path (`$HOME`).
+2. Then, replace `tab-bar` with this plugin:
 
    ```diff
    - plugin location="tab-bar"
-   + plugin location="file:/ABSOLUTE/HOME/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
+   + plugin location="file:~/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
    ```
 
    Or, non-interactively:
@@ -132,7 +132,7 @@ If you replace a stock plugin through `plugins { }` in `config.kdl`, keep the st
 From inside a Zellij session, load the plugin as a pane:
 
 ```sh
-zellij action start-or-reload-plugin "file:${HOME}/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
+zellij action start-or-reload-plugin "file:~/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
 ```
 
 The pane fills its area with slash characters in your theme colors. It does not require any permissions.
@@ -347,7 +347,6 @@ We specifically will not point layouts at an HTTPS plugin URL.
 1. Zellij offers another installation method that is simpler and insecure. That points your layout configuration to a HTTPS URL. We consider that feature wrong and deprecated. [TODO: create and link upstream issue]
 1. We speak of the official rustup installation recommendation as ugly. [Reported upstream](https://github.com/rust-lang/rust/issues/163468).
 1. Render snapshots follow [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Installation follows [`cargo install`](https://doc.rust-lang.org/cargo/commands/cargo-install.html). [tests/snapshot.sh](tests/snapshot.sh) compares every `shots/*.yaml` against `shots/{name}.ansi.txt`. [screenshot.svg](screenshot.svg) is the picture in this README.
-1. Zellij does not expand `~` inside a quoted `file:` plugin location. Install instructions use `$HOME`. [Confirmed while shipping zellij-status-bar-ng](https://github.com/fulldecent/zellij-status-bar-ng).
 1. The Rust ignore rules in [.gitignore](.gitignore) come from [GitHub's Rust gitignore](https://github.com/github/gitignore/blob/main/Rust.gitignore).
 1. This project is released under the [MIT license](./LICENSE.md).
 
