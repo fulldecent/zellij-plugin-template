@@ -97,19 +97,6 @@ You will now be adding this plugin to your default layout.
    + plugin location="file:~/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
    ```
 
-   Or, non-interactively:
-
-   ```sh
-   plugin="${HOME}/.config/zellij/plugins/com.github.fulldecent.zellij-plugin-template.wasm"
-   DEST=~/.config/zellij/layouts/default.kdl
-   # macOS sed writes the file in place. Replaces tab-bar or an older copy of this plugin.
-   sed -i '' \
-     -e "s|plugin location=\"tab-bar\"|plugin location=\"file:${plugin}\"|" \
-     -e "s|plugin location=\"file:.*com.github.fulldecent.zellij-plugin-template\\.wasm\"|plugin location=\"file:${plugin}\"|" \
-     -e "s|plugin location=\"file:.*fulldecent-zellij-plugin-template-.*\\.wasm\"|plugin location=\"file:${plugin}\"|" \
-     "$DEST"
-   ```
-
 Repeat the same try it out + installation steps to upgrade. The wasm file name is stable, so upgrading overwrites that file and your layout path stays the same. The sidecar next to it records which release version you downloaded.
 
 Plugin paths are read when a session starts. Quit Zellij, or open a new terminal and run `zellij`. A new tab is not a new session.
