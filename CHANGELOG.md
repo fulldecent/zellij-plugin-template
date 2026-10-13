@@ -3,8 +3,9 @@
 ## Unreleased
 
 - Install downloads the latest wasm and `.sigstore.jsonl` sidecar from GitHub `/releases/latest/download` using the stable reverse-DNS names.
-- Install paths use `$HOME`. Zellij does not expand `~` in `file:` locations.
-- Snapshot tests run every `shots/*.yaml`. Gitignore covers stray `*.wasm`.
+- Install paths use `file:~`. Zellij 0.45.1 expands `~` in `file:` plugin locations.
+- Release Please uses the `rust` release type, so the release pull request bumps `Cargo.toml`. The tag stays `vMAJOR.MINOR.PATCH`.
+- Snapshot tests run every `shots/*.yaml`. `screenshot.svg` stays at the repository root. Other pictures stay beside their YAML scripts.
 
 ## [0.4.0](https://github.com/fulldecent/zellij-plugin-template/compare/v0.3.0...v0.4.0) (2026-10-08)
 
