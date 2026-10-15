@@ -7,7 +7,7 @@
 - Release Please uses the `rust` release type, so the release pull request bumps `Cargo.toml`. The tag stays `vMAJOR.MINOR.PATCH`.
 - Snapshot tests run every `shots/*.yaml`. `screenshot.svg` stays at the repository root. Other pictures stay beside their YAML scripts.
 
-## [0.5.0](https://github.com/fulldecent/zellij-plugin-template/compare/v0.4.0...v0.5.0) (2026-10-10)
+## [0.5.0](https://github.com/fulldecent/zellij-plugin-template/compare/v0.4.0...v0.5.0) (2026-10-13)
 
 
 ### Features
@@ -17,6 +17,7 @@
 
 ### Bug Fixes
 
+* adopt status-bar-ng install and release practices ([5c806f5](https://github.com/fulldecent/zellij-plugin-template/commit/5c806f57ded405dae2b627b220da40ec669dbfbe))
 * compare snapshot output names from the YAML name field ([2aa4027](https://github.com/fulldecent/zellij-plugin-template/commit/2aa4027dac6763db10716fbea604db053fd50404))
 * copy each snapshot svg by name ([37e484e](https://github.com/fulldecent/zellij-plugin-template/commit/37e484edab1189b7d57734fcf6e43407989e0dd8))
 * fail empty snapshot glob and install via rustup run ([8c2d390](https://github.com/fulldecent/zellij-plugin-template/commit/8c2d39082c2b4bbd34a0e9c8423629a8e74e9d5c))
