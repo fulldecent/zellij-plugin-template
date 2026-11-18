@@ -4,34 +4,32 @@
 # zellij-plugin-snapshot is a command. [dependencies] and [dev-dependencies]
 # link a library into the wasm or into `cargo test`, so they leave this binary
 # uninstalled. Install the pinned release first:
-#   rustup run "$(rustup show active-toolchain | awk '{print $1}')" cargo install zellij-plugin-snapshot --version 0.2.2 --locked
+#   export PATH="$(dirname "$(rustup which cargo)"):$PATH"
+#   export DYLD_LIBRARY_PATH="$(cd "$(dirname "$(rustup which cargo)")/../lib" && pwd)" # macOS only; omit on Linux
+#   cargo install zellij-plugin-snapshot --version 0.2.2 --locked
 # https://github.com/fulldecent/zellij-plugin-snapshot
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$root"
 
-# Homebrew rust ignores rust-toolchain.toml. `rustup which cargo` is the
-# inner toolchain binary (often the default stable) and does not apply this
-# directory's rust-toolchain.toml or auto-install wasm32-wasip1.
-run_cargo() {
-  if command -v rustup >/dev/null 2>&1; then
-    rustup=$(command -v rustup)
-    toolchain=$("$rustup" show active-toolchain)
-    toolchain=${toolchain%% *}
-    "$rustup" run "$toolchain" cargo "$@"
-  else
-    cargo "$@"
-  fi
-}
+# Put the toolchain from rust-toolchain.toml first on PATH.
 
-# `cargo install` places zellij-plugin-snapshot in ~/.cargo/bin.
-PATH="${HOME}/.cargo/bin:${PATH}"
-export PATH
+if command -v rustup >/dev/null 2>&1; then
+  bin=$(dirname "$(rustup which cargo)")
+  PATH="$bin:${HOME}/.cargo/bin:${PATH}"
+  DYLD_LIBRARY_PATH="$(CDPATH= cd -- "$bin/../lib" && pwd)${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+  export PATH DYLD_LIBRARY_PATH
+else
+  PATH="${HOME}/.cargo/bin:${PATH}"
+  export PATH
+fi
 
 if ! command -v zellij-plugin-snapshot >/dev/null 2>&1; then
   echo "zellij-plugin-snapshot 0.2.2 is not on PATH." >&2
-  echo 'rustup run "$(rustup show active-toolchain | awk "{print \$1}")" cargo install zellij-plugin-snapshot --version 0.2.2 --locked' >&2
+  echo 'export PATH="$(dirname "$(rustup which cargo)"):$PATH"' >&2
+  echo 'export DYLD_LIBRARY_PATH="$(cd "$(dirname "$(rustup which cargo)")/../lib" && pwd)" # macOS only; omit on Linux' >&2
+  echo 'cargo install zellij-plugin-snapshot --version 0.2.2 --locked' >&2
   exit 1
 fi
 
@@ -42,7 +40,7 @@ fi
 if command -v rustup >/dev/null 2>&1; then
   "$(command -v rustup)" target add wasm32-wasip1
 fi
-run_cargo build --release --locked --target wasm32-wasip1
+cargo build --release --locked --target wasm32-wasip1
 
 # zellij-plugin-snapshot writes `{name}.ansi.txt` from the YAML `name` field
 # (file stem if `name` is omitted). Compare those generated files, not the
