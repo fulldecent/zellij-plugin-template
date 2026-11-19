@@ -131,16 +131,7 @@ The pane fills its area with slash characters in your theme colors. It does not 
 
 Thank you for taking an interest in improving Zellij Slashes Pane and the Zellij sessions of people using this project!
 
-You will need [rustup](https://rust-lang.github.io/rustup/), Git and your platform's native build tools. rustup is the Rust toolchain manager. This project pins the toolchain in [rust-toolchain.toml](rust-toolchain.toml); rustup reads that file and installs matching `rustc`, Cargo, rustfmt, Clippy and the `wasm32-wasip1` target.
-
-A packaged `rustc` or `cargo` from apt, dnf or Homebrew does not apply `rust-toolchain.toml`. Install rustup, then invoke the toolchain rustup selected:
-
-```sh
-"$(rustup which rustc)" --version
-"$(rustup which cargo)" --version
-```
-
-`rustup which` prints the toolchain binary rustup would run from this directory. Quoting the command substitution runs that file even when another `rustc` or `cargo` is earlier on `PATH`. That file is not the rustup proxy. It does not read `rust-toolchain.toml` again. On a GitHub-hosted runner, `rustup which cargo` has been the default stable toolchain, which did not have `wasm32-wasip1`. [tests/snapshot.sh](tests/snapshot.sh) asks `rustup show active-toolchain` and runs `rustup run`, so the wasm build uses the toolchain in [rust-toolchain.toml](rust-toolchain.toml).
+You will need Git, your platform's native build tools and the Rust tooling described in [rust-toolchain.toml](rust-toolchain.toml). We recommend rustup to manage your rust tooling, but install it using your system package manager rather than the dangerous methods on the rustup website ([ref](#references)).
 
 ### Linux
 
@@ -187,24 +178,34 @@ winget install --exact --id Rustlang.Rustup
 
 Allow administrator prompts and wait for installation to finish. Open a new PowerShell window so rustup is on `PATH`.
 
-Clone the project and build:
+Clone the project and build. On Linux and macOS:
+
+> [!NOTE]
+> If you do not require cross compilation, remove the `DYLD_LIBRARY_PATH="..."` part of all commands in this README.
 
 ```sh
 git clone https://github.com/fulldecent/zellij-plugin-template.git
 cd zellij-plugin-template
-"$(rustup which rustc)" --version
-"$(rustup which cargo)" --version
-"$(rustup which cargo)" check --locked
-"$(rustup which cargo)" build --locked
+rustup show
+cargo_bin=$(rustup which cargo)
+export PATH="$(dirname "$cargo_bin"):$PATH"
+export DYLD_LIBRARY_PATH="$(cd "$(dirname "$cargo_bin")/../lib" && pwd)" # macOS only; omit on Linux
+cargo check --locked
+cargo build --locked
 ```
 
 In PowerShell:
 
 ```powershell
-& (rustup which rustc) --version
-& (rustup which cargo) --version
-& (rustup which cargo) check --locked
-& (rustup which cargo) build --locked
+git clone https://github.com/fulldecent/zellij-plugin-template.git
+Set-Location zellij-plugin-template
+rustup show
+$cargo = rustup which cargo
+if (-not $cargo) { exit 1 }
+$bin = Split-Path $cargo
+$env:PATH = "$bin;$env:PATH"
+cargo check --locked
+cargo build --locked
 ```
 
 Run this directly with:
@@ -241,10 +242,14 @@ zellij action start-or-reload-plugin file:target/wasm32-wasip1/debug/plugin.wasm
 All project updates that we release must conform to our test suite. We have set our GitHub so that each commit automatically runs these tests and calls out any problems. But you can also run it locally on your computer before you send in commits and pull requests.
 
 ```sh
-"$(rustup which cargo)" test --locked --target "$("$(rustup which rustc)" -vV | sed -n 's/^host: //p')"
-"$(rustup which cargo)" fmt --all -- --check
-"$(rustup which cargo)" clippy --all-targets --locked -- -D warnings
-"$(rustup which cargo)" build --release --locked
+rustup show
+cargo_bin=$(rustup which cargo)
+export PATH="$(dirname "$cargo_bin"):$PATH"
+export DYLD_LIBRARY_PATH="$(cd "$(dirname "$cargo_bin")/../lib" && pwd)" # macOS only; omit on Linux
+cargo test --locked --target "$(rustc -vV | sed -n 's/^host: //p')"
+cargo fmt --all -- --check
+cargo clippy --all-targets --locked -- -D warnings
+cargo build --release --locked
 ```
 
 `cargo test` runs the Rust tests in `src/main.rs`. [tests/snapshot.sh](tests/snapshot.sh) builds the release wasm, runs every [shots/*.yaml](shots/) file, and exits non-zero unless each `{name}.ansi.txt` matches. Add another yaml in `shots/` when a plugin needs a second size or state.
@@ -252,7 +257,11 @@ All project updates that we release must conform to our test suite. We have set 
 The host is [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Install that published crate once. `cargo install` compiles it and puts `zellij-plugin-snapshot` on `PATH`. `[dependencies]` and `[dev-dependencies]` link a library into the plugin wasm or into `cargo test`. This host is a command, so those fields leave it uninstalled.
 
 ```sh
-rustup run "$(rustup show active-toolchain | awk '{print $1}')" cargo install zellij-plugin-snapshot --version 0.2.2 --locked
+rustup show
+cargo_bin=$(rustup which cargo)
+export PATH="$(dirname "$cargo_bin"):$PATH"
+export DYLD_LIBRARY_PATH="$(cd "$(dirname "$cargo_bin")/../lib" && pwd)" # macOS only; omit on Linux
+cargo install zellij-plugin-snapshot --version 0.2.2 --locked
 sh tests/snapshot.sh
 ```
 
@@ -333,6 +342,7 @@ We specifically will not point layouts at an HTTPS plugin URL.
 ## References
 
 1. We use "Title Case" only for proper nouns, this includes the name of our project. We have a separate style guide for other word choice and typography decisions we have settled on.
+1. We use a workaround so that rustup works without replacing your system Rust programs ([issue](https://github.com/rust-lang/rustup/issues/5025#issuecomment-6869331794)).
 1. This project is built based on [best practices documented in zellij-plugin-template](https://github.com/fulldecent/zellij-plugin-template), release 1.0.0.
 1. This project is built based on [best practices documented in rust-template](https://github.com/fulldecent/rust-template/), release 1.0.0.
 1. This project is built based on [best practices documented in project-template](https://github.com/fulldecent/project-template), release v1.4.1.
@@ -341,7 +351,7 @@ We specifically will not point layouts at an HTTPS plugin URL.
 1. Render snapshots follow [Zellij Plugin Snapshot](https://github.com/fulldecent/zellij-plugin-snapshot) 0.2.2. Installation follows [`cargo install`](https://doc.rust-lang.org/cargo/commands/cargo-install.html). [tests/snapshot.sh](tests/snapshot.sh) compares every `shots/*.yaml` against `shots/{name}.ansi.txt`. [screenshot.svg](screenshot.svg) is the picture in this README. Other SVG files stay beside their YAML scripts.
 1. Zellij 0.45.1 expands `~` in a `file:` plugin location. [Confirmed while shipping zellij-status-bar-ng](https://github.com/fulldecent/zellij-status-bar-ng).
 1. Release Please's [`rust` release type](https://github.com/googleapis/release-please/blob/main/docs/customizing.md) bumps [Cargo.toml](Cargo.toml) and [Cargo.lock](Cargo.lock). [`include-component-in-tag: false`](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) keeps the GitHub tag `vMAJOR.MINOR.PATCH`. The default tag for a package named `plugin` would be `plugin-vMAJOR.MINOR.PATCH`.
-1. [tests/snapshot.sh](tests/snapshot.sh) runs cargo with `rustup run` and the active toolchain. `rustup which cargo` is the inner toolchain binary. On GitHub Actions that binary was the default stable toolchain, which did not have `wasm32-wasip1`.
+1. [tests/snapshot.sh](tests/snapshot.sh) puts the toolchain from [rust-toolchain.toml](rust-toolchain.toml) first on `PATH`.
 1. The Rust ignore rules in [.gitignore](.gitignore) come from [GitHub's Rust gitignore](https://github.com/github/gitignore/blob/main/Rust.gitignore).
 1. This project is released under the [MIT license](./LICENSE.md).
 
